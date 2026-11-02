@@ -23,26 +23,31 @@ public class KREExportDialog {
 
     private int x;
     private int y;
-    private final int width = 220;
-    private final int height = 94;
+    private final int width = 240;
+    private final int height = 100;
 
     public KREExportDialog(BaseExporterScreen<?> parent) {
         this.parent = parent;
     }
 
     public void init(int screenWidth, int screenHeight, Font font) {
+        String currentVal = nameInput != null ? nameInput.getValue() : "";
+        boolean wasFocused = nameInput != null && nameInput.isFocused();
+
         this.x = (screenWidth - this.width) / 2;
         this.y = (screenHeight - this.height) / 2;
 
-        this.nameInput = new EditBox(font, x + 12, y + 36, width - 24, 20,
+        this.nameInput = new EditBox(font, x + 12, y + 40, width - 24, 20,
                 Component.translatable("komaru_recipe_exporter.dialog.filename"));
         this.nameInput.setMaxLength(64);
+        this.nameInput.setValue(currentVal);
+        this.nameInput.setFocused(wasFocused || visible);
         this.nameInput.setHint(Component.translatable("komaru_recipe_exporter.dialog.filename_placeholder"));
 
-        int btnWidth = 62;
-        int btnSpacing = 5;
+        int btnWidth = 68;
+        int btnSpacing = 6;
         int startBtnX = x + 12;
-        int btnY = y + 64;
+        int btnY = y + 68;
 
         this.exportButton = Button.builder(Component.translatable("komaru_recipe_exporter.dialog.export"), b -> confirmExport())
                 .pos(startBtnX, btnY)
@@ -110,17 +115,18 @@ public class KREExportDialog {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         if (!visible) return;
 
-        // Semi-transparent background shade
-        graphics.fill(0, 0, parent.width, parent.height, 0x90000000);
+        // Dark modal overlay over the entire screen
+        graphics.fill(0, 0, parent.width, parent.height, 0xB0000000);
 
-        // Dialog background panel
-        graphics.fill(x, y, x + width, y + height, 0xF0181818);
+        // Dialog background panel with beveled borders
+        graphics.fill(x, y, x + width, y + height, 0xFF232323);
         graphics.renderOutline(x, y, width, height, 0xFF555555);
+        graphics.renderOutline(x + 1, y + 1, width - 2, height - 2, 0xFF141414);
 
         // Titles
         Font font = Minecraft.getInstance().font;
-        graphics.drawString(font, title, x + 12, y + 10, 0xFFFFFF);
-        graphics.drawString(font, Component.translatable("komaru_recipe_exporter.dialog.filename"), x + 12, y + 24, 0xAAAAAA);
+        graphics.drawCenteredString(font, title, x + width / 2, y + 10, 0xFFFFFF);
+        graphics.drawString(font, Component.translatable("komaru_recipe_exporter.dialog.filename"), x + 12, y + 27, 0xAAAAAA, false);
 
         // Widgets
         nameInput.render(graphics, mouseX, mouseY, partialTick);

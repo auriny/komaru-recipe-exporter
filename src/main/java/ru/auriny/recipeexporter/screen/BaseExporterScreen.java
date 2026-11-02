@@ -127,14 +127,16 @@ public abstract class BaseExporterScreen<M extends BaseExporterMenu> extends Abs
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        if (exportDialog.isVisible()) {
+            this.renderBackground(graphics);
+            exportDialog.render(graphics, mouseX, mouseY, partialTick);
+            return;
+        }
+
         this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTick);
         this.renderTooltip(graphics, mouseX, mouseY);
         updateTagInputVisibility();
-
-        if (exportDialog.isVisible()) {
-            exportDialog.render(graphics, mouseX, mouseY, partialTick);
-        }
     }
 
     @Override
@@ -176,5 +178,29 @@ public abstract class BaseExporterScreen<M extends BaseExporterMenu> extends Abs
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (exportDialog.isVisible()) {
+            return true;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (exportDialog.isVisible()) {
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        if (exportDialog.isVisible()) {
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, delta);
     }
 }

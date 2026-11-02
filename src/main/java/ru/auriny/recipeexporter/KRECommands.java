@@ -1,10 +1,12 @@
 package ru.auriny.recipeexporter;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -20,19 +22,12 @@ public class KRECommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("kre")
-                        .then(Commands.argument("recipe_type", StringArgumentType.string())
-                                .suggests((ctx, builder) -> {
-                                    String remaining = builder.getRemainingLowerCase();
-                                    for (String name : ExportRecipeType.getAllSuggestionNames()) {
-                                        if (name.toLowerCase().startsWith(remaining)) {
-                                            builder.suggest(name);
-                                        }
-                                    }
-                                    return builder.buildFuture();
-                                })
+                        .then(Commands.argument("recipe_type", ResourceLocationArgument.id())
+                                .suggests((ctx, builder) -> SharedSuggestionProvider.suggestResource(
+                                        ExportRecipeType.getAllResourceLocations(), builder))
                                 .executes(ctx -> {
-                                    String typeStr = StringArgumentType.getString(ctx, "recipe_type");
-                                    return openMenu(ctx.getSource(), typeStr);
+                                    ResourceLocation loc = ResourceLocationArgument.getId(ctx, "recipe_type");
+                                    return openMenu(ctx.getSource(), loc);
                                 })
                         )
                         .executes(ctx -> {
@@ -43,16 +38,16 @@ public class KRECommands {
         );
     }
 
-    private static int openMenu(CommandSourceStack source, String typeName) {
+    private static int openMenu(CommandSourceStack source, ResourceLocation location) {
         if (!(source.getEntity() instanceof ServerPlayer player)) {
             source.sendFailure(Component.translatable("komaru_recipe_exporter.command.player_only"));
             return 0;
         }
 
-        ExportRecipeType type = ExportRecipeType.fromName(typeName);
+        ExportRecipeType type = ExportRecipeType.fromId(location);
         if (type == null) {
             source.sendFailure(Component.translatable("komaru_recipe_exporter.command.unknown",
-                    typeName, String.join(", ", ExportRecipeType.getMainIds())));
+                    location, String.join(", ", ExportRecipeType.getMainIds())));
             return 0;
         }
 
